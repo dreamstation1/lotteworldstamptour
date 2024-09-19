@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>롯데월드 어트랙션 스탬프 투어</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            position: relative;
+            display: inline-block;
+        }
+        .container img {
+            width: 800px;
+            height: 600px;
+        }
+        .text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #message {
+            margin-top: 20px;
+        }
+        button {
+            display: block;
+            margin: 10px auto;
+        }
+        #buttons-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px;
+        }
+        .ride-button {
+            padding: 10px;
+            font-size: 14px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .ride-button.stamped {
+            background-color: #28a745;
+            color: white;
+            pointer-events: none;
+        }
+        .ride-info {
+            display: none;
+            text-align: center;
+        }
+        .ride-info img {
+            width: 400px;
+            height: auto;
+        }
+        #guide-map-link {
+            margin-top: 20px;
+        }
+        #footer {
+            margin-top: 30px;
+            font-size: 14px;
+        }
+        #current-floor-text {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        #closest-ride-text {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #ff0000; /* 가까운 놀이기구 텍스트 색상 */
+        }
+    </style>
+</head>
+<body>
+    <h1>롯데월드 어트랙션 스탬프 투어</h1>
+    <div id="main-view">
+        <div class="container">
+            <img src="스탬프.jpg" alt="놀이기구 지도">
+            <div class="text-overlay" id="text-overlay"></div>
+        </div>
+        <div id="current-location">
+            <p id="current-location-text">현재 위치: 로딩 중...</p>
+            <p id="current-floor-text">현재 층수: 로딩 중...</p>
+            <p id="closest-ride-text">가장 가까운 놀이기구: 로딩 중...</p>
+        </div>
+        <div id="message"></div>
+        <div id="buttons-container"></div>
+        <div id="guide-map-link">
+            <a href="https://adventure.lotteworld.com/kor/usage-guide/service/guide-map/contentsid/375/index.do">
+                <button>가이드맵 보기</button>
+            </a>
+        </div>
+    </div>
+
+    <div id="ride-info" class="ride-info">
+        <button id="back-button">뒤로가기</button>
+        <h2 id="ride-name"></h2>
+        <p id="ride-location"></p>
+        <img id="ride-image" src="" alt="놀이기구 이미지">
+        <button id="stamp-button">스탬프 찍기</button>
+        <div id="stamp-message"></div>
+    </div>
+
+    <div id="footer">
+        <p>Made by 롯데월드알리미</p>
+        <a href="https://www.youtube.com/@LOTTEWORLD_alimi" target="_blank">롯데월드알리미 채널</a>
+    </div>
+
+    <script>
+        const rides = [
+            { name: '배틀그라운드 월드 에이전트', latitude: 37.511205, longitude: 127.097964, location: '1층' },
+            { name: '카트라이더 레이싱월드', latitude: 37.511479, longitude: 127.098212, location: '1층' },
+            { name: '자이로드롭', latitude: 37.508754, longitude: 127.100453, location: '매직아일랜드' },
+            { name: '아트란티스', latitude: 37.508543, longitude: 127.099899, location: '매직아일랜드' },
+            { name: '자이로스핀', latitude: 37.509344, longitude: 127.100535, location: '매직아일랜드' },
+            { name: '자이로스윙', latitude: 37.508378, longitude: 127.099844, location: '매직아일랜드' },
+            { name: '혜성특급', latitude: 37.509162, longitude: 127.100577, location: '매직아일랜드' },
+            { name: '번지드롭', latitude: 37.509271, longitude: 127.100179, location: '매직아일랜드' },
+            { name: '회전그네', latitude: 37.509294, longitude: 127.100423, location: '매직아일랜드' },
+            { name: '회전목마', latitude: 37.511306, longitude: 127.097856, location: '1층' },
+            { name: '신밧드의 모험', latitude: 37.511082, longitude: 127.099332, location: '1층' },
+            { name: '스페인해적선', latitude: 37.511037, longitude: 127.099363, location: '1층' },
+            { name: '후룸라이드', latitude: 37.511246, longitude: 127.099338, location: '1층' },
+            { name: '회전바구니', latitude: 37.511289, longitude: 127.099081, location: '1층' },
+            { name: '드래곤 와일드슈팅', latitude: 37.510983, longitude: 127.097199, location: '1층' },
+            { name: '파라오의 분노', latitude: 37.510739, longitude: 127.097516, location: '4층' },
+            { name: '범퍼카 (어드벤처)', latitude: 37.510462, longitude: 127.097275, location: '2층' },
+            { name: '후렌치레볼루션', latitude: 37.511047, longitude: 127.097064, location: '2층' },
+            { name: '풍선비행', latitude: 37.511036, longitude: 127.09719, location: '4층' },
+            { name: '쁘띠빵빵', latitude: 37.508733, longitude: 127.100372, location: '매직아일랜드' },
+            { name: '환타지드림', latitude: 37.508928, longitude: 127.100706, location: '매직아일랜드' }
+        ];
+
+        const STAMP_DISTANCE = 10; // 약 10미터
+
+        function setupButtons() {
+            const container = document.getElementById('buttons-container');
+            container.innerHTML = ''; // 기존 버튼 제거
+            rides.forEach((ride) => {
+                const button = document.createElement('button');
+                button.className = 'ride-button';
+                button.innerText = ride.name;
+                button.onclick = () => showRideInfo(ride, button);
+                container.appendChild(button);
+            });
+        }
+
+        function showRideInfo(ride, button) {
+            document.getElementById('main-view').style.display = 'none';
+            const rideInfo = document.getElementById('ride-info');
+            rideInfo.style.display = 'block';
+            
+            document.getElementById('ride-name').innerText = ride.name;
+            document.getElementById('ride-location').innerText = `위치: ${ride.location}`;
+            document.getElementById('ride-image').src = '스탬프.jpg'; // Placeholder for ride image
+            document.getElementById('stamp-message').innerHTML = '';
+
+            document.getElementById('stamp-button').onclick = () => stampRide(ride, button);
+            document.getElementById('back-button').onclick = () => {
+                rideInfo.style.display = 'none';
+                document.getElementById('main-view').style.display = 'block';
+            };
+        }
+
+        function stampRide(ride, button) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+                    const userLocation = `${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
+                    const distance = getDistance(userLat, userLon, ride.latitude, ride.longitude);
+                    const messageElement = document.getElementById('stamp-message');
+                    
+                    if (distance <= STAMP_DISTANCE) {
+                        messageElement.innerHTML = `성공! ${ride.name} 인증되었습니다! 현재 위치: ${userLocation}`;
+                        button.classList.add('stamped'); // Change button style to success
+                        button.innerText = '인증됨';
+                    } else {
+                        messageElement.innerHTML = `인증 실패! 현재 위치: ${userLocation}`;
+                    }
+                }, () => {
+                    alert('위치 정보를 가져오는 데 실패했습니다.');
+                });
+            } else {
+                alert('위치 정보가 지원되지 않습니다.');
+            }
+        }
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c * 1000; // Distance in meters
+        }
+
+        function toRad(value) {
+            return value * Math.PI / 180;
+        }
+
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+                    document.getElementById('current-location-text').innerText = `현재 위치: ${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
+                    reverseGeocode(userLat, userLon);
+                    const closestRide = getClosestRide(userLat, userLon);
+                    if (closestRide) {
+                        document.getElementById('closest-ride-text').innerText = `가장 가까운 놀이기구: ${closestRide.name} (${closestRide.distance.toFixed(2)} m)`;
+                    } else {
+                        document.getElementById('closest-ride-text').innerText = '가장 가까운 놀이기구를 찾을 수 없습니다.';
+                    }
+                });
+            } else {
+                document.getElementById('current-location-text').innerText = '위치 정보가 지원되지 않습니다.';
+            }
+        }
+
+        function reverseGeocode(lat, lon) {
+            const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        document.getElementById('current-floor-text').innerText = `지번: ${data.display_name}`;
+                    } else {
+                        document.getElementById('current-floor-text').innerText = '주소를 찾을 수 없습니다.';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('current-floor-text').innerText = '주소를 가져오는 데 오류가 발생했습니다.';
+                    console.error(error);
+                });
+        }
+
+        function getClosestRide(lat, lon) {
+            let closestRide = null;
+            let closestDistance = Infinity;
+            rides.forEach(ride => {
+                const distance = getDistance(lat, lon, ride.latitude, ride.longitude);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestRide = { ...ride, distance }; // 놀이기구 정보와 거리 저장
+                }
+            });
+            return closestRide;
+        }
+
+        window.onload = () => {
+            setupButtons();
+            updateLocation();
+            setInterval(updateLocation, 10000); // Update location every 10 seconds
+        };
+    </script>
+</body>
+</html>
