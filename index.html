@@ -34,13 +34,8 @@
             display: block;
             margin: 10px auto;
         }
-        #buttons-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 20px;
-        }
         .ride-button {
+            display: block;
             padding: 10px;
             font-size: 14px;
             background-color: #007bff;
@@ -48,7 +43,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            text-align: center;
+            margin: 5px;
         }
         .ride-button.stamped {
             background-color: #28a745;
@@ -70,15 +65,6 @@
             margin-top: 30px;
             font-size: 14px;
         }
-        #current-floor-text {
-            margin-top: 20px;
-            font-size: 16px;
-        }
-        #closest-ride-text {
-            margin-top: 10px;
-            font-size: 16px;
-            color: #ff0000; /* 가까운 놀이기구 텍스트 색상 */
-        }
     </style>
 </head>
 <body>
@@ -86,17 +72,16 @@
     <div id="main-view">
         <div class="container">
             <img src="스탬프.jpg" alt="놀이기구 지도">
-            <div class="text-overlay" id="text-overlay"></div>
+            <div class="text-overlay" id="text-overlay">현재 위치: 로딩 중...</div>
         </div>
         <div id="current-location">
             <p id="current-location-text">현재 위치: 로딩 중...</p>
-            <p id="current-floor-text">현재 층수: 로딩 중...</p>
-            <p id="closest-ride-text">가장 가까운 놀이기구: 로딩 중...</p>
+            <p id="address-text">지번: 로딩 중...</p>
         </div>
         <div id="message"></div>
         <div id="buttons-container"></div>
         <div id="guide-map-link">
-            <a href="https://adventure.lotteworld.com/kor/usage-guide/service/guide-map/contentsid/375/index.do">
+            <a href="https://adventure.lotteworld.com/kor/usage-guide/service/guide-map/contentsid/375/index.do" target="_blank">
                 <button>가이드맵 보기</button>
             </a>
         </div>
@@ -117,6 +102,7 @@
     </div>
 
     <script>
+        const STAMP_DISTANCE = 100; // 인증 가능 거리 (미터)
         const rides = [
             { name: '배틀그라운드 월드 에이전트', latitude: 37.511205, longitude: 127.097964, location: '1층' },
             { name: '카트라이더 레이싱월드', latitude: 37.511479, longitude: 127.098212, location: '1층' },
@@ -138,15 +124,13 @@
             { name: '후렌치레볼루션', latitude: 37.511047, longitude: 127.097064, location: '2층' },
             { name: '풍선비행', latitude: 37.511036, longitude: 127.09719, location: '4층' },
             { name: '쁘띠빵빵', latitude: 37.508733, longitude: 127.100372, location: '매직아일랜드' },
-            { name: '환타지드림', latitude: 37.508928, longitude: 127.100706, location: '매직아일랜드' }
+            { name: '환타지드림', latitude: 37.508928, longitude: 127.100706, location: '매직아일랜드' },
+            { name: '목동 6단지 608동', latitude:  37.517041, longitude:  126.864447, location: '서울 목동' }
         ];
-
-        const STAMP_DISTANCE = 10; // 약 10미터
 
         function setupButtons() {
             const container = document.getElementById('buttons-container');
-            container.innerHTML = ''; // 기존 버튼 제거
-            rides.forEach((ride) => {
+            rides.forEach((ride, index) => {
                 const button = document.createElement('button');
                 button.className = 'ride-button';
                 button.innerText = ride.name;
@@ -183,48 +167,44 @@
                     
                     if (distance <= STAMP_DISTANCE) {
                         messageElement.innerHTML = `성공! ${ride.name} 인증되었습니다! 현재 위치: ${userLocation}`;
-                        button.classList.add('stamped'); // Change button style to success
+                        button.classList.add('stamped'); 
                         button.innerText = '인증됨';
                     } else {
                         messageElement.innerHTML = `인증 실패! 현재 위치: ${userLocation}`;
                     }
                 }, () => {
                     alert('위치 정보를 가져오는 데 실패했습니다.');
-                });
+                }, { enableHighAccuracy: true });
             } else {
                 alert('위치 정보가 지원되지 않습니다.');
             }
         }
 
         function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Earth's radius in kilometers
+            const R = 6371; // 지구 반지름 (km)
             const dLat = toRad(lat2 - lat1);
             const dLon = toRad(lon2 - lon1);
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                       Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
                       Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c * 1000; // Distance in meters
+            return R * c * 1000; // 결과를 미터로 반환
         }
 
         function toRad(value) {
             return value * Math.PI / 180;
         }
 
-        function updateLocation() {
+        function showCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
-                    const userLat = position.coords.latitude;
-                    const userLon = position.coords.longitude;
-                    document.getElementById('current-location-text').innerText = `현재 위치: ${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
-                    reverseGeocode(userLat, userLon);
-                    const closestRide = getClosestRide(userLat, userLon);
-                    if (closestRide) {
-                        document.getElementById('closest-ride-text').innerText = `가장 가까운 놀이기구: ${closestRide.name} (${closestRide.distance.toFixed(2)} m)`;
-                    } else {
-                        document.getElementById('closest-ride-text').innerText = '가장 가까운 놀이기구를 찾을 수 없습니다.';
-                    }
-                });
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    document.getElementById('current-location-text').innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    reverseGeocode(lat, lon);
+                }, () => {
+                    document.getElementById('current-location-text').innerText = '위치 정보를 가져오는 데 실패했습니다.';
+                }, { enableHighAccuracy: true });
             } else {
                 document.getElementById('current-location-text').innerText = '위치 정보가 지원되지 않습니다.';
             }
@@ -236,35 +216,22 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.display_name) {
-                        document.getElementById('current-floor-text').innerText = `지번: ${data.display_name}`;
+                        document.getElementById('address-text').innerText = `지번: ${data.display_name}`;
                     } else {
-                        document.getElementById('current-floor-text').innerText = '주소를 찾을 수 없습니다.';
+                        document.getElementById('address-text').innerText = '주소를 찾을 수 없습니다.';
                     }
                 })
                 .catch(error => {
-                    document.getElementById('current-floor-text').innerText = '주소를 가져오는 데 오류가 발생했습니다.';
+                    document.getElementById('address-text').innerText = '주소를 가져오는 데 오류가 발생했습니다.';
                     console.error(error);
                 });
         }
 
-        function getClosestRide(lat, lon) {
-            let closestRide = null;
-            let closestDistance = Infinity;
-            rides.forEach(ride => {
-                const distance = getDistance(lat, lon, ride.latitude, ride.longitude);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    closestRide = { ...ride, distance }; // 놀이기구 정보와 거리 저장
-                }
-            });
-            return closestRide;
-        }
-
         window.onload = () => {
             setupButtons();
-            updateLocation();
-            setInterval(updateLocation, 10000); // Update location every 10 seconds
+            showCurrentLocation();
         };
     </script>
 </body>
 </html>
+
