@@ -42,7 +42,7 @@
         <button id="back-button">뒤로가기</button>
         <h2 id="ride-name"></h2>
         <p id="ride-location"></p>
-        <img id="ride-image" src="" alt="놀이기구 이미지">
+        <img id="ride-image" src="스탬프.jpg" alt="놀이기구 이미지">
         <button id="stamp-button">스탬프 찍기</button>
         <div id="stamp-message"></div>
     </div>
@@ -55,14 +55,32 @@
     <script>
         const STAMP_DISTANCE = 100; // 인증 가능 거리 (미터)
         const rides = [
-            // 어트랙션 위치 목록 추가
             { name: '배틀그라운드 월드 에이전트', latitude: 37.511205, longitude: 127.097964, location: '1층' },
-            // 다른 어트랙션 위치 추가
+            { name: '카트라이더 레이싱월드', latitude: 37.511479, longitude: 127.098212, location: '1층' },
+            { name: '자이로드롭', latitude: 37.508754, longitude: 127.100453, location: '매직아일랜드' },
+            { name: '아트란티스', latitude: 37.508543, longitude: 127.099899, location: '매직아일랜드' },
+            { name: '자이로스핀', latitude: 37.509344, longitude: 127.100535, location: '매직아일랜드' },
+            { name: '자이로스윙', latitude: 37.508378, longitude: 127.099844, location: '매직아일랜드' },
+            { name: '혜성특급', latitude: 37.509162, longitude: 127.100577, location: '매직아일랜드' },
+            { name: '번지드롭', latitude: 37.509271, longitude: 127.100179, location: '매직아일랜드' },
+            { name: '회전그네', latitude: 37.509294, longitude: 127.100423, location: '매직아일랜드' },
+            { name: '회전목마', latitude: 37.511306, longitude: 127.097856, location: '1층' },
+            { name: '신밧드의 모험', latitude: 37.511082, longitude: 127.099332, location: '1층' },
+            { name: '스페인해적선', latitude: 37.511037, longitude: 127.099363, location: '1층' },
+            { name: '후룸라이드', latitude: 37.511246, longitude: 127.099338, location: '1층' },
+            { name: '회전바구니', latitude: 37.511289, longitude: 127.099081, location: '1층' },
+            { name: '드래곤 와일드슈팅', latitude: 37.510983, longitude: 127.097199, location: '1층' },
+            { name: '파라오의 분노', latitude: 37.510739, longitude: 127.097516, location: '4층' },
+            { name: '범퍼카 (어드벤처)', latitude: 37.510462, longitude: 127.097275, location: '2층' },
+            { name: '후렌치레볼루션', latitude: 37.511047, longitude: 127.097064, location: '2층' },
+            { name: '풍선비행', latitude: 37.511036, longitude: 127.09719, location: '4층' },
+            { name: '쁘띠빵빵', latitude: 37.508733, longitude: 127.100372, location: '매직아일랜드' },
+            { name: '환타지드림', latitude: 37.508928, longitude: 127.100706, location: '매직아일랜드' }
         ];
 
         function setupButtons() {
             const container = document.getElementById('buttons-container');
-            rides.forEach((ride, index) => {
+            rides.forEach((ride) => {
                 const button = document.createElement('button');
                 button.className = 'ride-button';
                 button.innerText = ride.name;
@@ -77,7 +95,7 @@
             rideInfo.style.display = 'block';
             document.getElementById('ride-name').innerText = ride.name;
             document.getElementById('ride-location').innerText = `위치: ${ride.location}`;
-            document.getElementById('ride-image').src = '스탬프.jpg'; // Placeholder for ride image
+            document.getElementById('ride-image').src = '스탬프.jpg';
             document.getElementById('stamp-message').innerHTML = '';
 
             document.getElementById('stamp-button').onclick = () => stampRide(ride, button);
@@ -89,19 +107,18 @@
 
         function stampRide(ride, button) {
             if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(position => {
+                navigator.geolocation.getCurrentPosition(position => {
                     const userLat = position.coords.latitude;
                     const userLon = position.coords.longitude;
-                    const userLocation = `${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
                     const distance = getDistance(userLat, userLon, ride.latitude, ride.longitude);
                     const messageElement = document.getElementById('stamp-message');
-                    
+
                     if (distance <= STAMP_DISTANCE) {
-                        messageElement.innerHTML = `성공! ${ride.name} 인증되었습니다! 현재 위치: ${userLocation}`;
-                        button.classList.add('stamped'); 
+                        messageElement.innerHTML = `성공! ${ride.name} 인증되었습니다!`;
+                        button.classList.add('stamped');
                         button.innerText = '인증됨';
                     } else {
-                        messageElement.innerHTML = `인증 실패! 현재 위치: ${userLocation}`;
+                        messageElement.innerHTML = `인증 실패! 현재 위치와의 거리: ${distance.toFixed(2)}m`;
                     }
                 }, () => {
                     alert('위치 정보를 가져오는 데 실패했습니다.');
@@ -112,6 +129,7 @@
         }
 
         function getDistance(lat1, lon1, lat2, lon2) {
+
             const R = 6371; // 지구 반지름 (km)
             const dLat = toRad(lat2 - lat1);
             const dLon = toRad(lon2 - lon1);
@@ -128,10 +146,12 @@
 
         function showCurrentLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(position => {
+                navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     document.getElementById('current-location-text').innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    const overlay = document.getElementById('text-overlay');
+                    overlay.innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
                     reverseGeocode(lat, lon);
                 }, () => {
                     document.getElementById('current-location-text').innerText = '위치 정보를 가져오는 데 실패했습니다.';
