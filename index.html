@@ -2,69 +2,20 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>롯데월드 어트랙션 스탬프 투어</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        .container {
-            position: relative;
-            display: inline-block;
-        }
-        .container img {
-            width: 800px;
-            height: 600px;
-        }
-        .text-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        #message {
-            margin-top: 20px;
-        }
-        button {
-            display: block;
-            margin: 10px auto;
-        }
-        .ride-button {
-            display: block;
-            padding: 10px;
-            font-size: 14px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        .ride-button.stamped {
-            background-color: #28a745;
-            color: white;
-            pointer-events: none;
-        }
-        .ride-info {
-            display: none;
-            text-align: center;
-        }
-        .ride-info img {
-            width: 400px;
-            height: auto;
-        }
-        #guide-map-link {
-            margin-top: 20px;
-        }
-        #footer {
-            margin-top: 30px;
-            font-size: 14px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { position: relative; display: inline-block; }
+        .container img { width: 800px; height: 600px; }
+        .text-overlay { position: absolute; top: 0; left: 0; width: 100%; text-align: center; color: white; font-size: 20px; font-weight: bold; }
+        #message { margin-top: 20px; }
+        button { display: block; margin: 10px auto; }
+        .ride-button { display: block; padding: 10px; font-size: 14px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .ride-button.stamped { background-color: #28a745; color: white; pointer-events: none; }
+        .ride-info { display: none; text-align: center; }
+        .ride-info img { width: 400px; height: auto; }
+        #guide-map-link { margin-top: 20px; }
+        #footer { margin-top: 30px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -104,28 +55,9 @@
     <script>
         const STAMP_DISTANCE = 100; // 인증 가능 거리 (미터)
         const rides = [
+            // 어트랙션 위치 목록 추가
             { name: '배틀그라운드 월드 에이전트', latitude: 37.511205, longitude: 127.097964, location: '1층' },
-            { name: '카트라이더 레이싱월드', latitude: 37.511479, longitude: 127.098212, location: '1층' },
-            { name: '자이로드롭', latitude: 37.508754, longitude: 127.100453, location: '매직아일랜드' },
-            { name: '아트란티스', latitude: 37.508543, longitude: 127.099899, location: '매직아일랜드' },
-            { name: '자이로스핀', latitude: 37.509344, longitude: 127.100535, location: '매직아일랜드' },
-            { name: '자이로스윙', latitude: 37.508378, longitude: 127.099844, location: '매직아일랜드' },
-            { name: '혜성특급', latitude: 37.509162, longitude: 127.100577, location: '매직아일랜드' },
-            { name: '번지드롭', latitude: 37.509271, longitude: 127.100179, location: '매직아일랜드' },
-            { name: '회전그네', latitude: 37.509294, longitude: 127.100423, location: '매직아일랜드' },
-            { name: '회전목마', latitude: 37.511306, longitude: 127.097856, location: '1층' },
-            { name: '신밧드의 모험', latitude: 37.511082, longitude: 127.099332, location: '1층' },
-            { name: '스페인해적선', latitude: 37.511037, longitude: 127.099363, location: '1층' },
-            { name: '후룸라이드', latitude: 37.511246, longitude: 127.099338, location: '1층' },
-            { name: '회전바구니', latitude: 37.511289, longitude: 127.099081, location: '1층' },
-            { name: '드래곤 와일드슈팅', latitude: 37.510983, longitude: 127.097199, location: '1층' },
-            { name: '파라오의 분노', latitude: 37.510739, longitude: 127.097516, location: '4층' },
-            { name: '범퍼카 (어드벤처)', latitude: 37.510462, longitude: 127.097275, location: '2층' },
-            { name: '후렌치레볼루션', latitude: 37.511047, longitude: 127.097064, location: '2층' },
-            { name: '풍선비행', latitude: 37.511036, longitude: 127.09719, location: '4층' },
-            { name: '쁘띠빵빵', latitude: 37.508733, longitude: 127.100372, location: '매직아일랜드' },
-            { name: '환타지드림', latitude: 37.508928, longitude: 127.100706, location: '매직아일랜드' },
-            { name: '목동 6단지 608동', latitude: 37.534779, longitude: 126.885049, location: '서울 목동' }
+            // 다른 어트랙션 위치 추가
         ];
 
         function setupButtons() {
@@ -143,7 +75,6 @@
             document.getElementById('main-view').style.display = 'none';
             const rideInfo = document.getElementById('ride-info');
             rideInfo.style.display = 'block';
-            
             document.getElementById('ride-name').innerText = ride.name;
             document.getElementById('ride-location').innerText = `위치: ${ride.location}`;
             document.getElementById('ride-image').src = '스탬프.jpg'; // Placeholder for ride image
@@ -158,7 +89,7 @@
 
         function stampRide(ride, button) {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
+                navigator.geolocation.watchPosition(position => {
                     const userLat = position.coords.latitude;
                     const userLon = position.coords.longitude;
                     const userLocation = `${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
@@ -197,7 +128,7 @@
 
         function showCurrentLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
+                navigator.geolocation.watchPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     document.getElementById('current-location-text').innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
@@ -234,7 +165,3 @@
     </script>
 </body>
 </html>
-
-</body>
-</html>
-
