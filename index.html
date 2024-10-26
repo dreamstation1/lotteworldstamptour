@@ -145,21 +145,23 @@
         }
 
         function showCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    document.getElementById('current-location-text').innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-                    const overlay = document.getElementById('text-overlay');
-                    overlay.innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-                    reverseGeocode(lat, lon);
-                }, () => {
-                    document.getElementById('current-location-text').innerText = '위치 정보를 가져오는 데 실패했습니다.';
-                }, { enableHighAccuracy: true });
-            } else {
-                document.getElementById('current-location-text').innerText = '위치 정보가 지원되지 않습니다.';
-            }
-        }
+    if (navigator.geolocation) {
+        // 사용자의 위치를 지속적으로 추적하고 업데이트
+        navigator.geolocation.watchPosition(position => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            document.getElementById('current-location-text').innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            const overlay = document.getElementById('text-overlay');
+            overlay.innerText = `현재 위치: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            reverseGeocode(lat, lon);
+        }, () => {
+            document.getElementById('current-location-text').innerText = '위치 정보를 가져오는 데 실패했습니다.';
+        }, { enableHighAccuracy: true });
+    } else {
+        document.getElementById('current-location-text').innerText = '위치 정보가 지원되지 않습니다.';
+    }
+}
+
 
         function reverseGeocode(lat, lon) {
             const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
